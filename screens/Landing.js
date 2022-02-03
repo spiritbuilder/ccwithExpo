@@ -57,7 +57,7 @@ const Landing = ({ navigation, model }) => {
     <SafeAreaView style={styles.container}>
       <Toast />
 
-      
+      <View></View>
       <Text style={styles.c}>{ JSON.stringify(model)}cc News Today!</Text>
       {refreshing ? <ActivityIndicator /> : null}
       {refreshing ? (

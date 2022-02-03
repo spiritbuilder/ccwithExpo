@@ -17,27 +17,54 @@ import * as Yup from "yup";
 import * as ImagePicker from "expo-image-picker";
 import colors from "../utils/colors";
 import baseUrl from "../utils/helpers";
+import { Toast } from "react-native-toast-message/lib/src/Toast";
+import axios from "axios";
 
 const AddNews = ({ route }) => {
   const [modal, setModal] = useState(false);
+  const [uploading, setuploading] = useState(false);
+  console.log(route.params, "parameters");
   const submit = async (values) => {
-    let response = await axios.post("");
+    try {
+      let response = route.params
+        ? await axios.post(baseUrl + `news`, {
+            values,
+          })
+        : await axios.put(baseUrl + `${route.params.id}`);
+    } catch (error) {}
   };
 
-  const handleUpload = async (images) => {
+  const deleteImage = async (newsId, imageId, listId, setter, val) => {
+    try {
+      let response = await axios.post(baseUrl + `${newsId}/images/${imageId}`);
+      console.log(response);
+      setter(val["images"].splice(listId, 1));
+    } catch (error) {
+      Toast.show({
+        type: "info",
+        text1: "couldn't delete Image",
+      });
+    }
+  };
+
+  const handleUpload = async (uri, setter, val) => {
+    setuploading(true);
     const formdata = new FormData();
-    formdata.append("file", images);
+    formdata.append("file", uri);
     formdata.append("upload_preset", "cc");
     try {
       const resp = await axios.post(
         "https://api.cloudinary.com/v1_1/tolaifa/image/upload",
         formdata
       );
-      setFieldValue(field, resp.data.secure_url);
+      setter(images, [...val.images, ...resp.data.secure_url]);
       setUploading(false);
       setstate({ file: null, visible: false });
     } catch (error) {
-      alert(error.message);
+      Toast.show({
+        text1: "Error Uploading",
+        type: "info",
+      });
       setUploading(false);
     }
   };
@@ -46,9 +73,9 @@ const AddNews = ({ route }) => {
     author: Yup.string()
       .min(3, "Author name must be more than 3 characters")
       .required(),
-    // body: Yup.string()
-    //   .min(50, 'The news must be more than 50 characters')
-    //   .required(),
+    body: Yup.string()
+      .min(50, 'The news must be more than 50 characters')
+      .required(),
     title: Yup.string()
       .min(3, "News title must be more than 3 characters")
       .required(),
@@ -58,11 +85,11 @@ const AddNews = ({ route }) => {
   const options = {
     mediaTypes: ImagePicker.MediaTypeOptions.Images,
     allowsEditing: true,
-    aspect: [4, 3],
+    aspect: [4, 4],
     quality: 1,
   };
 
-  const pickImage = async (from) => {
+  const pickImage = async (from, setter, val) => {
     let result;
     if (from === "gallery") {
       result = await ImagePicker.launchImageLibraryAsync(options);
@@ -70,10 +97,10 @@ const AddNews = ({ route }) => {
       result = await ImagePicker.launchCameraAsync(options);
     }
 
-    console.log(result);
+    console.log(result.uri);
 
     if (!result.cancelled) {
-      return result.uri;
+      handleUpload(result.uri, setter, val);
     }
   };
 
@@ -94,7 +121,9 @@ const AddNews = ({ route }) => {
             id: route.params ? route.params.id : null,
           }}
           validationSchema={schema}
-          onSubmit={() => {}}
+          onSubmit={(val) => {
+            handleSubmit(val);
+          }}
         >
           {({ handleChange, handleSubmit, values, errors, setFieldValue }) => (
             <>
@@ -133,12 +162,26 @@ const AddNews = ({ route }) => {
                 <>
                   <ScrollView horizontal>
                     {values.images.map((image, id) => (
-                      <ImageBackground source={image} style={styles.images}>
+                      <ImageBackground
+                        key={id}
+                        source={image}
+                        style={styles.images}
+                      >
                         <TouchableOpacity
                           style={[styles.cancel, { top: 0, right: 0 }]}
                           onPress={() => {
+                            if (route.params.id) {
+                              deleteImage(
+                                route.params.id,
+                                image.imageId,
+                                id,
+                                setFieldValue,
+                                values
+                              );
+                            } else {
+                            }
+
                             setModal(false);
-                            setFieldValue(images);
                           }}
                         >
                           <MaterialIcons
@@ -188,10 +231,15 @@ const AddNews = ({ route }) => {
                   </TouchableOpacity>
 
                   <TouchableOpacity
-                    style={[styles.addImage, { width: "100%", marginTop: 20 }]}
+                    style={[
+                      styles.addImage,
+                      { width: "100%", marginVertical: 20 },
+                    ]}
                     onPress={handleSubmit}
                   >
-                    <Text style={styles.btnText}>Publish</Text>
+                    <Text style={styles.btnText}>
+                      {route.params ? "Update" : "Publish"}
+                    </Text>
                   </TouchableOpacity>
                 </>
               )}
@@ -216,6 +264,11 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 10,
+    paddingBottom: 40,
+  },
+  scroll: {
+    flex: 1,
+    paddingBottom: 40,
   },
   inputwrap: {
     paddingVertical: 10,

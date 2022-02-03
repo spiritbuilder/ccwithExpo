@@ -9,7 +9,7 @@ import {useNavigation} from '@react-navigation/native';
 function createImageArray(arr) {
   let imageArr = [];
   for (let i = 0; i < arr.length; i++) {
-    imageArr.push({uri: arr[i].image });
+    imageArr.push({uri: arr[i].image,imageId:arr[i].id });
   }
   
   return imageArr;
@@ -24,6 +24,7 @@ export default function NewsItem({data}) {
     try {
       let response = await axios.get(baseUrl + `news/${data.id}/images`);
       prepData.images = response.data;
+      console.log(response.data);
       setImages(createImageArray(response.data));
     } catch (error) { 
       

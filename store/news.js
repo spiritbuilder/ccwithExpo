@@ -1,6 +1,6 @@
 import Toast from "react-native-toast-message";
 import baseUrl from "../utils/helpers";
-import {AsyncStorage} from "@react-native-community/async-storage"
+import {AsyncStorage} from "react-native"
 
 const handleException = (x, description) => {
   Toast.show({
