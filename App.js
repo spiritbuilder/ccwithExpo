@@ -48,19 +48,22 @@ const App = () => {
 
 
 const mapState = (state) => ({
-  state: state.allnews,
+  news: state.news
 });
 const mapDispatch = (dispatch) => ({
-  loadnews: () => dispatch.model.loadnews(),
-  nextpage: () => dispatch.model.nextpage(),
-  prevpage: () => dispatch.model.prevpage(),
+  loadnews: () => dispatch.news.loadnews(),
+  nextpage: () => dispatch.news.nextpage(),
+  prevpage: () => dispatch.news.prevpage(),
 });
- connect(mapState, mapDispatch)(App);
+let Connected =  connect(mapState, mapDispatch)(App);
 
  const Main = () => {
-   return <Provider store={store}>
-     <App />
-   </Provider>;
+   return (
+     <Provider store={store}>
+       <Connected />
+      
+     </Provider>
+   );
  };
 
  export default Main;

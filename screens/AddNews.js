@@ -296,8 +296,9 @@ const styles = StyleSheet.create({
   },
   images: {
     width: 130,
-    height: 65,
+    height: 80,
     marginHorizontal: 10,
+    borderRadius:10
   },
   btnText: {
     color: "white",

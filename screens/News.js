@@ -52,7 +52,7 @@ const News = ({ route , navigation }) => {
         comment: newComment,
         name: "Timi",
         avatar:
-          "https://www.google.com/imgres?imgurl=https%3A%2F%2Ffiverr-res.cloudinary.com%2Fimages%2Ft_main1%2Cq_auto%2Cf_auto%2Cq_auto%2Cf_auto%2Fgigs%2F27504677%2Foriginal%2Fdc8eab2b4552007634258e64f0655927e4dcb938%2Fdraw-your-cartoon-avatar.jpg&imgrefurl=https%3A%2F%2Fwww.fiverr.com%2Fsovan19%2Fdraw-your-cartoon-avatar&tbnid=EAmoDJzZ-STc-M&vet=12ahUKEwiamOb-3uH1AhWITMAKHYtlBJ4QMygbegUIARCYAg..i&docid=gUzpIsV0i2sncM&w=680&h=457&itg=1&q=nice%20avatar&ved=2ahUKEwiamOb-3uH1AhWITMAKHYtlBJ4QMygbegUIARCYAg",
+          "https://media.istockphoto.com/photos/illustration-of-standing-african-american-woman-with-arms-crossed-of-picture-id1296857178?s=612x612",
         newsId: id,
       });
       Toast.show({

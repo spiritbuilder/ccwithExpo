@@ -1,16 +1,16 @@
 import Toast from "react-native-toast-message";
 import baseUrl from "../utils/helpers";
-import {AsyncStorage} from "react-native"
+import AsyncStorageLib from "@react-native-async-storage/async-storage";
 
 const handleException = (x, description) => {
   Toast.show({
-    type: info,
+    type: "info",
     text1: description,
   });
   return x;
 };
 
-const model = {
+const news = {
   state: {
     allnews: [],
     currentpage: 0,
@@ -19,8 +19,8 @@ const model = {
     
   },
   reducers: {
-      loadnews: async (state, payload) => {
-        await  AsyncStorage.setItem("news", payload)
+      loadnews: (state, payload) => {
+        
       return {
         allnews: payload,
         currentpage: 1,
@@ -29,14 +29,15 @@ const model = {
        
       };
     },
-    nextpage: (state, payload) => {
+      nextpage: (state, payload) => {
+        
       return {
         ...state,
         currentpage:
           state.maxpages > state.currentpage
             ? state.currentpage + 1
-            : handleException(state.currentpage, "this is the last page"),
-          pageNews: state.allnews.slice(state.currentpage<state.maxpages?state.allnews.slice(10*state.currentpage,10*state.currentpage+1):state.pageNews),
+            : state.currentpage,
+          pageNews: state.currentpage<state.maxpages?state.allnews.slice(10*(state.currentpage),10*(state.currentpage+1)):state.pageNews,
       };
     },
     prevpage: (state, payload) => {
@@ -45,15 +46,15 @@ const model = {
         currentpage:
           state.currentpage > 1
             ? state.currentpage - 1
-            : handleException(state.currentpage, "this is the last page"),
-        pageNews: state.allnews.slice(
+            : state.currentpage,
+        pageNews: 
           state.currentpage >1
             ? state.allnews.slice(
-                10 * state.currentpage-2,
-                10 * state.currentpage-1
+                10 *( state.currentpage-2),
+                10 * (state.currentpage-1)
               )
             : state.pageNews
-        ),
+      
       };
     },
   },
@@ -63,4 +64,4 @@ const model = {
   }),
 };
 
-export default model;
+export default news;
