@@ -1,20 +1,66 @@
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import React, { useEffect, useState } from "react";
+import { NavigationContainer } from "@react-navigation/native";
 
-export default function App() {
+import Landing from "./screens/Landing";
+
+import NewsItem from "./components/NewsItem";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import News from "./screens/News";
+import AddNews from "./screens/AddNews";
+import { Provider,connect } from "react-redux";
+import "redux";
+import { Toast } from "react-native-toast-message/lib/src/Toast";
+import store from "./store/start";
+const Stack = createNativeStackNavigator();
+const {dispatch} = store
+const App = () => {
   return (
-    <View style={styles.container}>
-      <Text>Open up App.js to start working on your app!</Text>
-      <StatusBar style="auto" />
-    </View>
+    
+      <NavigationContainer>
+        <Stack.Navigator
+          initialRouteName="Landing"
+          screenOptions={{
+            headerStyle: {
+              backgroundColor: "rgba(26, 137, 23, 1)",
+            },
+            headerTintColor: "#fff",
+            headerTitleStyle: {
+              fontWeight: "bold",
+            },
+          }}
+        >
+          <Stack.Screen
+            name="Landing"
+            component={Landing}
+            options={{ title: "Latest News" }}
+          />
+          <Stack.Screen name="News" component={News} />
+          <Stack.Screen name="AddNews" component={AddNews} />
+        </Stack.Navigator>
+      </NavigationContainer>
+   
   );
-}
+};
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+
+
+
+
+
+const mapState = (state) => ({
+  state: state.allnews,
 });
+const mapDispatch = (dispatch) => ({
+  loadnews: () => dispatch.model.loadnews(),
+  nextpage: () => dispatch.model.nextpage(),
+  prevpage: () => dispatch.model.prevpage(),
+});
+ connect(mapState, mapDispatch)(App);
+
+ const Main = () => {
+   return <Provider store={store}>
+     <App />
+   </Provider>;
+ };
+
+ export default Main;
