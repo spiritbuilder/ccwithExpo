@@ -8,6 +8,7 @@ import {
   ScrollView,
   TextInput,
   TouchableOpacity,
+  Image,
 } from "react-native";
 
 import baseUrl from "../utils/helpers";
@@ -19,7 +20,7 @@ import { Toast } from "react-native-toast-message/lib/src/Toast";
 import colors from "../utils/colors";
 import { useIsFocused } from "@react-navigation/native";
 
-const News = ({ route , navigation }) => {
+const News = ({ route, navigation }) => {
   let isfocused = useIsFocused();
   let { images, title, id, body, createdAt, author } = route.params;
   const [width, setWidth] = useState();
@@ -32,16 +33,12 @@ const News = ({ route , navigation }) => {
         baseUrl + `news/${route.params.id}/comments`
       );
       setComments(response.data);
-      console.log(response.data);
-      return
+
+      return;
     } catch (error) {
-      console.log(error);
-      Toast.show({
-        type: "info",
-        text1: "Couldn't fetch",
-        text2: "Attempting to refetch Comments",
-      });
-      fetchComments()
+      setTimeout(() => {
+        fetchComments();
+      }, 5000);
     }
   };
 
@@ -70,27 +67,24 @@ const News = ({ route , navigation }) => {
       });
     }
   };
-  const deleteNews = async() => {
-  try {
-    let response = await axios.delete(baseUrl + `news/${id}`)
-    navigation.navigate("Landing")
-
-  } catch (error) {
-    console.log(error);
-    Toast.show({
-      type: "info",
-      text1: "Error",
-      text2:"Could not delete news, Please Try again"
-    })
-  }
-}
+  const deleteNews = async () => {
+    try {
+      let response = await axios.delete(baseUrl + `news/${id}`);
+      navigation.navigate("Landing");
+    } catch (error) {
+      console.log(error);
+      Toast.show({
+        type: "info",
+        text1: "Error",
+        text2: "Could not delete news, Please Try again",
+      });
+    }
+  };
   useEffect(() => {
     if (isfocused) {
       fetchComments();
     }
   }, []);
-
-  
 
   return (
     <SafeAreaView style={styles.container}>
@@ -98,7 +92,9 @@ const News = ({ route , navigation }) => {
         barStyle="light-content"
         backgroundColor="rgba(26, 137, 23, 1)"
       />
-      <View><TouchableOpacity></TouchableOpacity></View>
+      <View>
+        <TouchableOpacity></TouchableOpacity>
+      </View>
       <View
         style={styles.container}
         onLayout={(e) => {
@@ -234,7 +230,7 @@ const styles = StyleSheet.create({
   commentbox: {
     width: "100%",
     borderColor: colors.green,
-    
+
     display: "flex",
     flexDirection: "row",
     justifyContent: "space-between",
@@ -263,19 +259,18 @@ const styles = StyleSheet.create({
     alignItems: "center",
     borderRadius: 20,
     paddingHorizontal: 15,
-    paddingVertical:10
+    paddingVertical: 10,
   },
 
   editbtnText: {
     fontSize: 13,
-    color:colors.green
-    
+    color: colors.green,
   },
   btns: {
     display: "flex",
     padding: 20,
     justifyContent: "space-between",
     alignItems: "center",
-    flexDirection:"row"
-  }
+    flexDirection: "row",
+  },
 });

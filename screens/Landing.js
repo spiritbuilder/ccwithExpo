@@ -10,7 +10,6 @@ import {
   TouchableOpacity,
   FlatList,
   RefreshControl,
-
 } from "react-native";
 import store from "../store/start";
 import React, { useState, useEffect } from "react";
@@ -26,10 +25,7 @@ import { AsyncStorage } from "@react-native-async-storage/async-storage";
 import { connect } from "react-redux";
 const { dispatch } = store;
 
-
-const Landing = ({news:rematchnews, navigation, loadnews}) => {
-  
-  console.log(rematchnews,"news is here");
+const Landing = ({ news: rematchnews, navigation, loadnews, route }) => {
   let isfocused = useIsFocused();
   const [news, setNews] = useState(rematchnews.pageNews);
   const [refreshing, setRefreshing] = useState(false);
@@ -41,25 +37,23 @@ const Landing = ({news:rematchnews, navigation, loadnews}) => {
       dispatch.news.loadnews(response.data);
       setRefreshing(false);
       await AsyncStorage.setItem("news", response.data);
-      
-      
     } catch (error) {
       Toast.show({
         type: "info",
         text1: "Couldn't fetch News",
       });
       let res = await AsyncStorage.getItem("news");
-      console.log(res, "async gave")
-      res ? (() => {
-        setNews(res);
-        
-    }) : setTimeout(fetchNews, 5000);
-      console.log(error);
+
+      res
+        ? () => {
+            setNews(res);
+          }
+        : setTimeout(fetchNews, 5000);
     }
   };
 
   useEffect(() => {
-    if (isfocused) {
+    if (isfocused || route.params) {
       fetchNews();
     }
   }, []);
@@ -122,9 +116,8 @@ const mapDispatch = (dispatch) => ({
   nextpage: () => dispatch.model.nextpage(),
   prevpage: () => dispatch.model.prevpage(),
 });
- 
 
-export default connect(mapState, mapDispatch)(Landing);;
+export default connect(mapState, mapDispatch)(Landing);
 
 const styles = StyleSheet.create({
   container: { flex: 1, display: "flex" },

@@ -24,11 +24,11 @@ export default function NewsItem({data}) {
     try {
       let response = await axios.get(baseUrl + `news/${data.id}/images`);
       prepData.images = response.data;
-      console.log(response.data);
+
       setImages(createImageArray(response.data));
     } catch (error) { 
       
-      console.log(error.response);
+ 
     }
   };
   useEffect(() => {

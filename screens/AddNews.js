@@ -17,13 +17,16 @@ import * as Yup from "yup";
 import * as ImagePicker from "expo-image-picker";
 import colors from "../utils/colors";
 import baseUrl from "../utils/helpers";
-import { Toast } from "react-native-toast-message/lib/src/Toast";
-import axios from "axios";
 
-const AddNews = ({ route }) => {
+import axios from "axios";
+import { connect } from "react-redux";
+import store from "../store/start";
+import Toast from "react-native-simple-toast";
+const { dispatch } = store;
+
+const AddNews = ({ route, navigation }) => {
   const [modal, setModal] = useState(false);
-  const [uploading, setuploading] = useState(false);
-  console.log(route.params, "parameters");
+  const [uploading, setUploading] = useState(false);
   const submit = async (values) => {
     try {
       let response = route.params
@@ -31,40 +34,44 @@ const AddNews = ({ route }) => {
             values,
           })
         : await axios.put(baseUrl + `${route.params.id}`);
-    } catch (error) {}
+    } catch (error) {
+      Toast.show("couldn't add news");
+    }
   };
 
   const deleteImage = async (newsId, imageId, listId, setter, val) => {
     try {
-      let response = await axios.post(baseUrl + `${newsId}/images/${imageId}`);
-      console.log(response);
-      setter(val["images"].splice(listId, 1));
-    } catch (error) {
-      Toast.show({
-        type: "info",
-        text1: "couldn't delete Image",
-      });
-    }
+      if (route.params) {
+        let response = await axios.delete(
+          baseUrl + `${newsId}/images/${imageId}`
+        );
+      }
+      setter("images", val["images"].splice(listId, 1));
+    } catch (error) {}
   };
 
   const handleUpload = async (uri, setter, val) => {
-    setuploading(true);
-    const formdata = new FormData();
-    formdata.append("file", uri);
-    formdata.append("upload_preset", "cc");
+    setUploading(true);
+
+    const data = new FormData();
+
+    data.append("file", uri);
+    data.append("cloud_name", "ddkfwcu7t");
+    data.append("upload_preset", "bonsfnr0");
+    const form = {
+      key: "6d207e02198a847aa98d0a2a901485a5",
+      action: "upload",
+      source:uri.uri
+    };
+    // formdata.append("api_key", "379238249965154");
     try {
-      const resp = await axios.post(
-        "https://api.cloudinary.com/v1_1/tolaifa/image/upload",
-        formdata
-      );
-      setter(images, [...val.images, ...resp.data.secure_url]);
+      const resp = await axios.post("https://freeimage.host/api/1/upload", form);
+      console.log(resp.data);
+      setter("images", [...val.images, ...resp.data.secure_url]);
       setUploading(false);
-      setstate({ file: null, visible: false });
     } catch (error) {
-      Toast.show({
-        text1: "Error Uploading",
-        type: "info",
-      });
+      console.log(error.response);
+      Toast.show("could not upload image");
       setUploading(false);
     }
   };
@@ -74,7 +81,7 @@ const AddNews = ({ route }) => {
       .min(3, "Author name must be more than 3 characters")
       .required(),
     body: Yup.string()
-      .min(50, 'The news must be more than 50 characters')
+      .min(10, "The news must be more than 10 characters")
       .required(),
     title: Yup.string()
       .min(3, "News title must be more than 3 characters")
@@ -97,10 +104,8 @@ const AddNews = ({ route }) => {
       result = await ImagePicker.launchCameraAsync(options);
     }
 
-    console.log(result.uri);
-
     if (!result.cancelled) {
-      handleUpload(result.uri, setter, val);
+      handleUpload(result, setter, val);
     }
   };
 
@@ -121,8 +126,35 @@ const AddNews = ({ route }) => {
             id: route.params ? route.params.id : null,
           }}
           validationSchema={schema}
-          onSubmit={(val) => {
-            handleSubmit(val);
+          onSubmit={async (val) => {
+            if (route.params) {
+              try {
+                console.log(" i edited");
+                let res = await axios.put(
+                  baseUrl + `/news/${route.params.id}`,
+
+                  val
+                );
+
+                navigation.navigate("Landing", "reload");
+              } catch (error) {
+                console.log("err");
+              }
+            } else {
+              axios.post(baseUrl + "/news", val).then(async (res) => {
+                if (val.images.length > 0) {
+                }
+                for (let i = 0; i < val.images.length; i++) {
+                  await axios.post(baseUrl + `/news/${res.id}/images`, {
+                    newsId: res.id,
+                    image: val.images[i],
+                  });
+                }
+                navigation.navigate("Landing", "reload");
+              });
+
+              navigation.navigate("Landing", reload);
+            }
           }}
         >
           {({ handleChange, handleSubmit, values, errors, setFieldValue }) => (
@@ -139,8 +171,12 @@ const AddNews = ({ route }) => {
                     <TouchableOpacity
                       style={styles.addImage}
                       onPress={async () => {
-                        let picked = await pickImage("gallery");
-                        setFieldValue("images", [...values.images, picked]);
+                        let picked = await pickImage(
+                          "gallery",
+                          setFieldValue,
+                          values
+                        );
+
                         setModal(false);
                       }}
                     >
@@ -149,8 +185,12 @@ const AddNews = ({ route }) => {
                     <TouchableOpacity
                       style={styles.addImage}
                       onPress={async () => {
-                        let picked = await pickImage("camera");
-                        setFieldValue("images", [...values.images, picked]);
+                        let picked = await pickImage(
+                          "camera",
+                          setFieldValue,
+                          values
+                        );
+
                         setModal(false);
                       }}
                     >
@@ -170,6 +210,7 @@ const AddNews = ({ route }) => {
                         <TouchableOpacity
                           style={[styles.cancel, { top: 0, right: 0 }]}
                           onPress={() => {
+                            console.log("first" + image);
                             if (route.params.id) {
                               deleteImage(
                                 route.params.id,
@@ -179,6 +220,10 @@ const AddNews = ({ route }) => {
                                 values
                               );
                             } else {
+                              setFieldValue(
+                                "images",
+                                values.images.splice(id, 1)
+                              );
                             }
 
                             setModal(false);
@@ -219,6 +264,7 @@ const AddNews = ({ route }) => {
                       onChangeText={handleChange("body")}
                       value={values.body}
                     />
+                    <Text>{errors && errors.body}</Text>
                   </View>
                   <TouchableOpacity
                     style={styles.addImage}
@@ -250,8 +296,16 @@ const AddNews = ({ route }) => {
     </SafeAreaView>
   );
 };
+const mapState = (state) => ({
+  news: state.news,
+});
+const mapDispatch = (dispatch) => ({
+  loadnews: () => dispatch.model.loadnews(),
+  nextpage: () => dispatch.model.nextpage(),
+  prevpage: () => dispatch.model.prevpage(),
+});
 
-export default AddNews;
+export default connect(mapState, mapDispatch)(AddNews);
 
 const styles = StyleSheet.create({
   input: {
@@ -298,7 +352,7 @@ const styles = StyleSheet.create({
     width: 130,
     height: 80,
     marginHorizontal: 10,
-    borderRadius:10
+    borderRadius: 10,
   },
   btnText: {
     color: "white",
